@@ -1,6 +1,6 @@
-Algorithm/Optimization:
+#Algorithm/Optimization:
   Alan Binion
-Data & Matching:
+#Data & Matching:
   Andy Vu
-Product & Quality:
+#Product & Quality:
   Matthew Benitez 
