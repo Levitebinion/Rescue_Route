@@ -2,6 +2,8 @@
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+*.pyo
 
 # Virtual environment
 venv/
@@ -24,3 +26,6 @@ htmlcov/
 
 # Environment variables (if you ever add API keys/secrets)
 .env
+dist/
+build/
+*.egg-info/
