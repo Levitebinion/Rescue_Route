@@ -1,0 +1,4 @@
+id,name,item,quantity,priority,location
+r1,Community Center,water,8,1,North
+r2,Family Shelter,blanket,3,3,South
+r3,Clinic,water,10,5,East
