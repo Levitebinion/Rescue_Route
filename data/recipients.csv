@@ -1,4 +1,3 @@
-id,name,item,quantity,priority,location
-r1,Community Center,water,8,1,North
-r2,Family Shelter,blanket,3,3,South
-r3,Clinic,water,10,5,East
+id,name,accepted_food_types,capacity,area,closing_time,priority
+R-1,Community Shelter,prepared_meals|produce,40,downtown,300,0
+R-2,Eastside Pantry,bread|produce,35,eastside,200,0
