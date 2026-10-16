@@ -6,35 +6,41 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Donation:
     id: str
-    item: str
+    donor_name: str
+    food_type: str
+    shelf_life_minutes: int
     quantity: int
-    donated_at: str = ""
-    location: str = ""
+    pickup_area: str = ""
+    ready_time: int = 0
 
 
 @dataclass(frozen=True)
 class Recipient:
     id: str
     name: str
-    item: str
-    quantity: int
+    accepted_food_types: frozenset[str]
+    capacity: int
+    area: str
+    closing_time: int
     priority: int = 0
-    location: str = ""
 
 
 @dataclass(frozen=True)
 class Volunteer:
     id: str
     name: str
-    capacity: int = 1
-    location: str = ""
+    vehicle_capacity: int
+    area: str
     available: bool = True
+    max_pickups: int = 1
 
 
 @dataclass(frozen=True)
 class Allocation:
     donation_id: str
-    recipient_id: str
-    item: str
+    recipient_id: str | None
+    volunteer_id: str | None
     quantity: int
-    volunteer_id: str | None = None
+    decision_reason: str
+    status: str
+    deferred_after: tuple[str, ...] = ()

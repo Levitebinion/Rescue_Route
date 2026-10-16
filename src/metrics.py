@@ -2,24 +2,62 @@
 
 from collections.abc import Iterable
 
-from .models import Allocation, Recipient
+from .models import Allocation, Donation, Recipient, Volunteer
 
 
-def total_allocated(allocations: Iterable[Allocation]) -> int:
-    return sum(allocation.quantity for allocation in allocations)
+def summarize(donations: Iterable[Donation], recipients: Iterable[Recipient], volunteers: Iterable[Volunteer], 
+allocations: Iterable[Allocation], urgent_fraction: float = 0.25) -> dict[str, float | int]:
+    donations = list(donations)
+    recipients = list(recipients)
+    volunteers = list(volunteers)
+    allocations = list(allocations)
 
+    donation_by_id = {d.id: d for d in donations}
+    assigned = [a for a in allocations if a.status == "assigned"]
+    unassigned = [a for a in allocations if a.status == "unassigned"]
 
-def fulfillment_rate(allocations: Iterable[Allocation], recipients: Iterable[Recipient]) -> float:
-    requested = sum(recipient.quantity for recipient in recipients)
-    return total_allocated(allocations) / requested if requested else 1.0
+    quantity_rescued = sum(donation_by_id[a.donation_id].quantity for a in assigned)
+    quantity_at_risk = sum(donation_by_id[a.donation_id].quantity for a in unassigned)
 
+    # "Urgent" = the most time-sensitive slice of donations by remaining
+    # shelf life (default: the most urgent 25%). Adjust urgent_fraction, or
+    # the definition itself, to match whatever your team documents in the
+    # README -- the brief doesn't pin down an exact cutoff.
+    by_urgency = sorted(donations, key=lambda d: d.shelf_life_minutes)
+    cutoff = max(1, round(len(by_urgency) * urgent_fraction)) if by_urgency else 0
+    urgent_ids = {d.id for d in by_urgency[:cutoff]}
+    assigned_ids = {a.donation_id for a in assigned}
+    urgent_rescue_rate = (
+        len(urgent_ids & assigned_ids) / len(urgent_ids) if urgent_ids else 0.0
+    )
 
-def allocation_summary(allocations: Iterable[Allocation], recipients: Iterable[Recipient]) -> dict[str, float | int]:
-    allocation_list = list(allocations)
-    recipient_list = list(recipients)
+    total_recipient_capacity = sum(r.capacity for r in recipients)
+    total_volunteer_capacity = sum(v.vehicle_capacity for v in volunteers)
+
     return {
-        "allocated": total_allocated(allocation_list),
-        "requested": sum(recipient.quantity for recipient in recipient_list),
-        "fulfillment_rate": fulfillment_rate(allocation_list, recipient_list),
-        "allocation_count": len(allocation_list),
+        "donations_received": len(donations),
+        "donations_assigned": len(assigned),
+        "donations_unassigned": len(unassigned),
+        "food_quantity_rescued": quantity_rescued,
+        "food_quantity_at_risk": quantity_at_risk,
+        "urgent_rescue_rate": round(urgent_rescue_rate, 4),
+        "recipient_capacity_utilization": (
+            round(quantity_rescued / total_recipient_capacity, 4) if total_recipient_capacity else 0.0
+        ),
+        "volunteer_capacity_utilization": (
+            round(quantity_rescued / total_volunteer_capacity, 4) if total_volunteer_capacity else 0.0
+        ),
+    }
+
+
+def compare_strategies(fifo_summary: dict[str, float | int],
+                        greedy_summary: dict[str, float | int]) -> dict[str, float | int]:
+    """Difference in assigned donations, rescued quantity, and urgent rescue
+    rate between the two strategies (greedy minus fifo)."""
+    return {
+        "assigned_diff": greedy_summary["donations_assigned"] - fifo_summary["donations_assigned"],
+        "quantity_rescued_diff": greedy_summary["food_quantity_rescued"] - fifo_summary["food_quantity_rescued"],
+        "urgent_rescue_rate_diff": round(
+            greedy_summary["urgent_rescue_rate"] - fifo_summary["urgent_rescue_rate"], 4
+        ),
     }

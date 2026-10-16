@@ -2,10 +2,14 @@
 
 from collections.abc import Iterable
 
-from .fifo import allocate_fifo
-from .models import Allocation, Donation, Recipient
+from .matching import run_matching
+from .models import Allocation, Donation, Recipient, Volunteer
 
 
-def allocate_greedy(donations: Iterable[Donation], recipients: Iterable[Recipient]) -> list[Allocation]:
-    ordered = sorted(enumerate(recipients), key=lambda pair: (-pair[1].priority, pair[0]))
-    return allocate_fifo(donations, [recipient for _, recipient in ordered])
+def _urgency_key(donation: Donation) -> tuple[int, int, int]:
+    return (donation.shelf_life_minutes, -donation.quantity, donation.ready_time)
+
+
+def allocate_greedy(donations: Iterable[Donation], recipients: Iterable[Recipient], volunteers: Iterable[Volunteer]) -> list[Allocation]:
+    ordered_donations = sorted(donations, key=_urgency_key)
+    return run_matching(ordered_donations, recipients, volunteers)
