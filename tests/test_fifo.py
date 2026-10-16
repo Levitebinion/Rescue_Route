@@ -32,13 +32,17 @@ def test_insufficient_recipient_capacity_is_unassigned():
         [make_donation(quantity=50)], [make_recipient(capacity=10)], [make_volunteer()]
     )
     assert allocations[0].status == "unassigned"
+    assert "capacity remaining" in allocations[0].decision_reason
 
 
 def test_recipient_closed_before_ready_time_is_unassigned():
     allocations = allocate_fifo(
-        [make_donation(ready_time=100)], [make_recipient(closing_time=50)], [make_volunteer()]
+        [make_donation(shelf_life=500, ready_time=100)],
+        [make_recipient(closing_time=50)],
+        [make_volunteer()],
     )
     assert allocations[0].status == "unassigned"
+    assert "no recipient accepts" in allocations[0].decision_reason
 
 
 def test_no_volunteer_with_enough_vehicle_capacity_is_unassigned():
@@ -80,3 +84,33 @@ def test_empty_inputs_return_no_allocations():
     assert allocate_fifo([], [make_recipient()], [make_volunteer()]) == []
     allocations = allocate_fifo([make_donation()], [], [])
     assert allocations[0].status == "unassigned"
+
+
+def test_donation_that_expires_before_it_is_ready_is_unassigned():
+    # "Nearly expired": 30 minutes of shelf life, but not ready until minute 50.
+    allocations = allocate_fifo(
+        [make_donation(shelf_life=30, ready_time=50)], [make_recipient()], [make_volunteer()]
+    )
+    assert allocations[0].status == "unassigned"
+    assert "not ready for pickup until minute 50" in allocations[0].decision_reason
+
+
+def test_donation_ready_just_before_expiry_is_still_assigned():
+    allocations = allocate_fifo(
+        [make_donation(shelf_life=30, ready_time=29)], [make_recipient()], [make_volunteer()]
+    )
+    assert allocations[0].status == "assigned"
+
+
+def test_donation_ready_exactly_at_expiry_is_unassigned():
+    allocations = allocate_fifo(
+        [make_donation(shelf_life=30, ready_time=30)], [make_recipient()], [make_volunteer()]
+    )
+    assert allocations[0].status == "unassigned"
+
+
+def test_fifo_never_reports_deferrals():
+    donations = [make_donation("d1", shelf_life=200), make_donation("d2", shelf_life=10)]
+    allocations = allocate_fifo(donations, [make_recipient(capacity=10)], [make_volunteer()])
+    assert all(a.deferred_after == () for a in allocations)
+    assert all("urgency-first" not in a.decision_reason for a in allocations)

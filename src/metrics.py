@@ -19,11 +19,13 @@ allocations: Iterable[Allocation], urgent_fraction: float = 0.25) -> dict[str, f
     quantity_rescued = sum(donation_by_id[a.donation_id].quantity for a in assigned)
     quantity_at_risk = sum(donation_by_id[a.donation_id].quantity for a in unassigned)
 
-    # "Urgent" = the most time-sensitive slice of donations by remaining
-    # shelf life (default: the most urgent 25%). Adjust urgent_fraction, or
-    # the definition itself, to match whatever your team documents in the
-    # README -- the brief doesn't pin down an exact cutoff.
-    by_urgency = sorted(donations, key=lambda d: d.shelf_life_minutes)
+    # "Urgent" = the most time-sensitive slice (default: 25%, at least one) of
+    # the donations that could still be rescued in time. Donations already
+    # expired by their ready time are left out: no strategy can rescue them,
+    # so counting them would just drag both strategies' rates toward zero.
+    # Adjust urgent_fraction, or the definition, to match your README.
+    rescuable = [d for d in donations if d.shelf_life_minutes > d.ready_time]
+    by_urgency = sorted(rescuable, key=lambda d: d.shelf_life_minutes)
     cutoff = max(1, round(len(by_urgency) * urgent_fraction)) if by_urgency else 0
     urgent_ids = {d.id for d in by_urgency[:cutoff]}
     assigned_ids = {a.donation_id for a in assigned}

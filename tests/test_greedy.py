@@ -57,3 +57,56 @@ def test_greedy_still_explains_every_donation():
     allocations = allocate_greedy(donations, [make_recipient()], [make_volunteer()])
     assert len(allocations) == 2
     assert all(a.decision_reason for a in allocations)
+
+def test_deferred_donation_names_the_more_urgent_donation_that_went_first():
+    relaxed = make_donation("relaxed", shelf_life=200, quantity=5)   # arrives first
+    urgent = make_donation("urgent", shelf_life=10, quantity=5)
+    allocations = allocate_greedy([relaxed, urgent], [make_recipient(capacity=5)], [make_volunteer()])
+    deferred = next(a for a in allocations if a.donation_id == "relaxed")
+
+    assert deferred.status == "unassigned"
+    assert deferred.deferred_after == ("urgent",)
+    assert "considered after urgent (less remaining shelf life)" in deferred.decision_reason
+
+
+def test_deferral_explains_tie_break_on_quantity():
+    small = make_donation("small", shelf_life=50, quantity=5)        # arrives first
+    large = make_donation("large", shelf_life=50, quantity=20)
+    allocations = allocate_greedy([small, large], [make_recipient(capacity=20)], [make_volunteer()])
+    deferred = next(a for a in allocations if a.donation_id == "small")
+    assert "equal shelf life but a larger quantity" in deferred.decision_reason
+
+
+def test_donation_processed_in_arrival_order_has_no_deferral():
+    urgent = make_donation("urgent", shelf_life=10, quantity=5)      # arrives first AND most urgent
+    relaxed = make_donation("relaxed", shelf_life=200, quantity=5)
+    allocations = allocate_greedy([urgent, relaxed], [make_recipient(capacity=5)], [make_volunteer()])
+    urgent_allocation = next(a for a in allocations if a.donation_id == "urgent")
+    assert urgent_allocation.deferred_after == ()
+    assert "urgency-first" not in urgent_allocation.decision_reason
+
+
+def test_deferral_note_ignores_donations_in_other_areas():
+    # The eastside donation jumps the queue, but it can't compete with a
+    # downtown donation for recipients or volunteers, so it isn't blamed.
+    relaxed = make_donation("relaxed", shelf_life=200, quantity=5, area="downtown")
+    urgent = make_donation("urgent", shelf_life=10, quantity=5, area="eastside")
+    recipients = [make_recipient("r-down", area="downtown"), make_recipient("r-east", area="eastside")]
+    volunteers = [make_volunteer("v-down", area="downtown"), make_volunteer("v-east", area="eastside")]
+
+    allocations = allocate_greedy([relaxed, urgent], recipients, volunteers)
+    relaxed_allocation = next(a for a in allocations if a.donation_id == "relaxed")
+
+    assert relaxed_allocation.status == "assigned"
+    assert relaxed_allocation.deferred_after == ("urgent",)         # processing order did change...
+    assert "urgency-first" not in relaxed_allocation.decision_reason  # ...but it did not matter
+
+
+def test_no_deferral_note_when_failure_has_nothing_to_do_with_order():
+    # Nobody accepts seafood, so being processed later is irrelevant.
+    seafood = make_donation("seafood", food_type="seafood", shelf_life=200)
+    urgent = make_donation("urgent", shelf_life=10)
+    allocations = allocate_greedy([seafood, urgent], [make_recipient(food_types={"produce"})], [make_volunteer()])
+    seafood_allocation = next(a for a in allocations if a.donation_id == "seafood")
+    assert seafood_allocation.status == "unassigned"
+    assert "urgency-first" not in seafood_allocation.decision_reason

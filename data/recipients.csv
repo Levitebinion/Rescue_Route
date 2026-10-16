@@ -1,3 +1,5 @@
 id,name,accepted_food_types,capacity,area,closing_time,priority
-R-1,Community Shelter,prepared_meals|produce,40,downtown,300,0
-R-2,Eastside Pantry,bread|produce,35,eastside,200,0
+R-201,Community Shelter,prepared_meals|produce,40,downtown,300,0
+R-202,Eastside Pantry,bread|produce|dairy,35,eastside,240,0
+R-203,Downtown Fridge,dairy|produce,30,downtown,300,0
+R-204,Westside Kitchen,prepared_meals|bread,25,westside,200,0
