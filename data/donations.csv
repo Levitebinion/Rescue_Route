@@ -1,6 +1,10 @@
 id,donor_name,food_type,quantity,shelf_life_minutes,pickup_area,ready_time
-D-1,Campus Bistro,prepared_meals,20,90,downtown,0
-D-2,Green Grocer,produce,50,240,downtown,10
-D-3,Sunrise Bakery,bread,30,180,eastside,15
-D-4,Campus Bistro,prepared_meals,15,0,downtown,20
-D-5,Taco Corner,seafood,10,60,downtown,25
+D-1001,Green Grocer,produce,25,300,downtown,0
+D-1002,Campus Bistro,prepared_meals,20,45,downtown,10
+D-1003,Sunrise Bakery,bread,30,180,eastside,15
+D-1004,Campus Bistro,prepared_meals,15,0,downtown,20
+D-1005,Taco Corner,seafood,10,200,downtown,25
+D-1006,Dairy Farm,dairy,25,120,downtown,30
+D-1007,Metro Deli,prepared_meals,12,30,downtown,40
+D-1008,Westside Cafe,bread,20,150,westside,35
+D-1009,Hotel Banquet,prepared_meals,22,75,westside,50

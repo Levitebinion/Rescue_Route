@@ -1,3 +1,6 @@
 id,name,vehicle_capacity,area,available,max_pickups
-V-1,Alex,20,downtown,true,3
-V-2,Sam,30,eastside,true,2
+V-301,Alex,25,downtown,true,3
+V-302,Sam,30,eastside,true,2
+V-303,Jordan,15,downtown,true,2
+V-304,Riley,25,westside,true,2
+V-305,Casey,40,downtown,false,3

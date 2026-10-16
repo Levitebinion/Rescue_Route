@@ -41,3 +41,16 @@ def test_compare_strategies_shows_greedy_rescuing_the_urgent_donation():
     diff = compare_strategies(fifo, greedy)
     assert diff["urgent_rescue_rate_diff"] == 1.0
     assert diff["assigned_diff"] == 0
+
+def test_urgent_rescue_rate_ignores_donations_that_could_never_be_rescued():
+    # The expired donation is the "most urgent" by shelf life, but nobody can
+    # rescue it. The urgent set should be the most urgent *rescuable* donation.
+    donations = [make_donation("expired", shelf_life=0),
+                 make_donation("urgent", shelf_life=10),
+                 make_donation("relaxed", shelf_life=200)]
+    recipients = [make_recipient(capacity=100)]
+    volunteers = [make_volunteer(max_pickups=5)]
+    allocations = allocate_greedy(donations, recipients, volunteers)
+
+    summary = summarize(donations, recipients, volunteers, allocations)
+    assert summary["urgent_rescue_rate"] == 1.0
