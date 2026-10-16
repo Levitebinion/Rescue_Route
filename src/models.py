@@ -43,3 +43,4 @@ class Allocation:
     quantity: int
     decision_reason: str
     status: str
+    deferred_after: tuple[str, ...] = ()
