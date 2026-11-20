@@ -243,9 +243,9 @@ Let **D** = donations, **R** = recipients, **V** = volunteers.
 
 | Role | Member | Responsibilities |
 |---|---|---|
-| Algorithm & Optimization Lead | _name_ | FIFO scheduler, greedy rule, priority selection, complexity analysis, strategy comparison |
+| Algorithm & Optimization Lead | Alan | FIFO scheduler, greedy rule, priority selection, complexity analysis, strategy comparison |
 | Data & Matching Lead | Matt | input files, validation, compatibility checks, capacity rules, data structures, test data |
-| Product & Quality Lead | _name_ | explainable output, metrics, tests, README, demo materials, CLI polish |
+| Product & Quality Lead | Andy | explainable output, metrics, tests, README, demo materials, CLI polish |
 
 All members share design discussion, code review, debugging, testing, documentation, and the final presentation.
 
